@@ -1,0 +1,26 @@
+{
+  "name": "clever-odm",
+  "version": "0.0.1",
+  "dependencies": {
+    "mongoose": "~3.6.20"
+  },
+  "author": {
+    "name": "Clevertech",
+    "email": "info@clevertech.biz",
+    "web": "http://www.clevertech.biz"
+  },
+  "collaborators": [
+    "Richard Gustin <richard@clevertech.biz>"
+  ],
+  "description": "CleverStack ODM (NoSQL) Module",
+  "keywords": [
+    "cleverstack",
+    "clevertech",
+    "cleverstack-module",
+    "cleverstack-backend"
+  ],
+  "main": "module.js",
+  "devDependencies": {
+
+  }
+}
