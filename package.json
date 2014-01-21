@@ -4,6 +4,10 @@
   "dependencies": {
     "mongoose": "~3.6.20"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/CleverStack/clever-odm.git"
+  },
   "author": {
     "name": "Clevertech",
     "email": "info@clevertech.biz",
@@ -12,6 +16,10 @@
   "collaborators": [
     "Richard Gustin <richard@clevertech.biz>"
   ],
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/CleverStack/clever-odm/issues"
+  },
   "description": "CleverStack ODM (NoSQL) Module",
   "keywords": [
     "cleverstack",
