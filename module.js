@@ -11,7 +11,7 @@ Module = ModuleClass.extend({
         this.models = {};
     },
 
-    preResources: function() {
+    preInit: function() {
         debug( 'Opening connection to database' );
         
         // Connect to mongo
