@@ -1,6 +1,6 @@
 {
   "name": "clever-odm",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "dependencies": {
     "mongoose": "~3.6.20"
   },
@@ -14,7 +14,7 @@
     "web": "http://cleverstack.io"
   },
   "collaborators": [
-    "Richard Gustin <richard@clevertech.biz>"
+    "Richard Gustin <richard.gustin86@gmail.com>"
   ],
   "license": "BSD-2-Clause",
   "bugs": {

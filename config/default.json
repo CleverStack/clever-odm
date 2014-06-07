@@ -1,5 +1,8 @@
 {
-    "odm": {
-        "uri": "localhost"
+    "clever-odm": {
+        "uri": "mongodb://localhost/nodeseed",
+        "mongoose": {
+            "debug": true
+        }
     }
 }
