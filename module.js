@@ -1,8 +1,8 @@
-var mongoose        = require( 'mongoose' )
-  , injector        = require( 'injector' )
-  , Module          = require( 'classes' ).Module;
+var mongoose    = require( 'mongoose' )
+  , injector    = require( 'injector' )
+  , Module      = require( 'classes' ).Module;
 
-module.exports = new Module.extend({
+module.exports = Module.extend({
 
     models: {},
 
