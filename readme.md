@@ -2,7 +2,7 @@ CleverStack ODM Module
 ====================
 [![NPM version](https://badge.fury.io/js/clever-odm.png)](http://badge.fury.io/js/clever-odm) [![GitHub version](https://badge.fury.io/gh/cleverstack%2Fclever-odm.png)](http://badge.fury.io/gh/cleverstack%2Fclever-odm) [![Dependency Status](https://david-dm.org/CleverStack/clever-odm.png)](https://david-dm.org/CleverStack/clever-odm) [![devDependency Status](https://david-dm.org/CleverStack/clever-odm/dev-status.png)](https://david-dm.org/CleverStack/clever-odm#info=devDependencies) [![Code Climate](https://codeclimate.com/github/CleverStack/clever-odm.png)](https://codeclimate.com/github/CleverStack/clever-odm) 
 [![Build Status](https://secure.travis-ci.org/CleverStack/clever-odm.png?branch=master)](https://travis-ci.org/CleverStack/clever-odm) 
-[![Coverage](https://codeclimate.com/github/CleverStack/clever-odm/coverage.png)](https://codeclimate.com/github/CleverStack/clever-odm) 
+[![Coverage](https://codeclimate.com/github/CleverStack/clever-odm/coverage.png)](https://codeclimate.com/github/CleverStack/clever-odm) [![NPM downloads](http://img.shields.io/npm/dm/clever-odm.png)](https://www.npmjs.org/package/clever-odm) 
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/) 
 
 ![CleverStack NodeJS ODM Module](http://cleverstack.github.io/assets/img/logos/node-seed-logo-clean.png "CleverStack NodeJS ODM Module")
