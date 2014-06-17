@@ -21,7 +21,7 @@ module.exports = Module.extend({
         injector.instance( 'mongoose', mongoose );
     },
 
-    parseModelSchema: function( Static, Proto ) {
+    parseModelSchema: function( Static ) {
         var parseDebug = this.proxy(function( msg ) { 
                 this.debug( Static._name + 'Model: ' + msg ); 
             })
@@ -33,58 +33,13 @@ module.exports = Module.extend({
             return this.models[ Static._name ];
         }
 
+        parseDebug( 'Parsing options...' );
+        if ( !!Static.dbName ) {
+            mongooseConf.collection = Static.dbName;
+        }
+
         parseDebug( 'Parsing schema...' );
-        Object.keys( Static._schema ).forEach(function( name ) {
-            var options = Static._schema[ name ]
-              , fieldDefinition = {};
-
-            // If a type has been specified outside of the object, handle that
-            if ( typeof options !== 'object' ) {
-                options = {
-                    type: options
-                }
-            }
-
-            // Figure out the type mapping for mongoosejs
-            switch( options.type ) {
-                case Number:
-                    if ( !!options.primaryKey ) {
-                        if ( name !== 'id' ) {
-                            throw new Error( [ 'You cannot have a primaryKey that is not called id with the ODM module.' ] );
-                        }
-                        Static.primaryKey = name;
-                        mongooseConf.id = true;
-                        mongooseConf._id = true;
-                        fieldDefinition = mongoose.Schema.Types.ObjectId;
-                        break;
-                    }
-                case String:
-                case Boolean:
-                case Date:
-                    fieldDefinition.type = options.type;
-
-                    // Handle options
-                    [ 'unique', 'required', 'default' ].forEach(function( optionName ) {
-                        if ( options[ optionName ] !== undefined ) {
-                            fieldDefinition[ optionName ] = options[ optionName ];
-                        }
-                    });
-                    break;
-                case mongoose.Schema.Types.ObjectId:
-                    fieldDefinition = mongoose.Schema.Types.ObjectId;
-                    break;
-                case undefined:
-                    throw new Error( [ 'You must define the type of field that', '"' + name + '"', 'is on the', '"' + Static.name + '" model' ].join( ' ' ) );
-                    break;
-                default:
-                    throw new Error( [ 'You must define a valid type for the field named', '"' + name + '"', 'on the', '"' + Static.name + '" model' ].join( ' ' ) );
-                    break;
-            }
-
-            if ( fieldDefinition !== null ) {
-                fields[ name ] = fieldDefinition;
-            }
-        });
+        Object.keys( Static._schema ).forEach( this.proxy( 'parseSchemaField', Static, fields, mongooseConf ) );
 
         parseDebug( 'Set _db to mongoose...' );
         Static._db = mongoose;
@@ -96,6 +51,80 @@ module.exports = Module.extend({
         this.models[ Static._name ] = model;
 
         return model;
+    },
+
+    parseSchemaField: function( Static, fields, mongooseConf, name ) {
+        var options = Static._schema[ name ]
+          , fieldDefinition = {};
+
+        // Allow direct syntax
+        if ( typeof options !== 'object' || options instanceof Array ) {
+            options = {
+                type: options
+            }
+        }
+
+        // Handle array of "Something"
+        if ( options.type instanceof Array || options.type === Array ) {
+            options.of = ( options.type.length > 0 && options.type[ 0 ] !== undefined ) ? options.type[ 0 ] : String;
+            options.type = Array;
+        }
+
+        // Map the primary key for mongoose
+        if ( !!options.primaryKey ) {
+            if ( name !== 'id' ) {
+                throw new Error( [ 'You cannot have a primaryKey that is not called id with the ODM module.' ] );
+            }
+            Static.primaryKey = name;
+            mongooseConf.id = true;
+            mongooseConf._id = true;
+            fieldDefinition = mongoose.Schema.Types.ObjectId;
+        } else {
+            fieldDefinition.type = this.getFieldType( Static, options );
+        }
+
+        // Handle options
+        [ 'unique', 'required', 'default', 'min', 'max', 'lowercase', 'match', 'trim', 'uppercase' ].forEach(function( optionName ) {
+            if ( options[ optionName ] !== undefined ) {
+                fieldDefinition[ optionName ] = options[ optionName ];
+            }
+        });
+
+        fields[ name ] = fieldDefinition;
+    },
+
+    getFieldType: function( Static, options ) {
+        var field;
+
+        switch( options.type ) {
+
+        case Number:
+        case String:
+        case Boolean:
+        case Date:
+        case Buffer:
+            field = options.type;
+            break;
+        case Array:
+            field = options.of ? [ this.getFieldType( Static, { type: options.of } ) ] : [ String ];
+            break;
+        case Model.Types.ENUM:
+            throw new Error( 'ENUM is not supported for ODM (yet)' );
+        case Model.Types.BIGINT:
+        case Model.Types.FLOAT:
+        case Model.Types.DECIMAL:
+            field = Number;
+            break;
+        case Model.Types.TEXT:
+            field = String;
+            break;
+        case undefined:
+            throw new Error( [ 'You must define the type of field that', '"' + name + '"', 'is on the', '"' + Static.name + '" model' ].join( ' ' ) );
+        default:
+            throw new Error( [ 'You must define a valid type for the field named', '"' + name + '"', 'on the', '"' + Static.name + '" model' ].join( ' ' ) );
+        }
+
+        return field;
     },
 
     preShutdown: function() {
