@@ -11,8 +11,15 @@ module.exports = Module.extend({
     preSetup: function() {
         this.debug( 'Opening database connection to Mongo ' + this.config.uri + '...' );
 
-        mongoose.connect( this.config.uri );
         mongoose.set( 'debug', this.config.mongoose.debug );
+    },
+
+    modulesLoaded: function() {
+        mongoose.connect( this.config.uri, this.proxy( 'handleMongoConnect' ) );
+    },
+
+    handleMongoConnect: function( err ) {
+        this.emit( 'ready', err );
     },
 
     preInit: function() {
