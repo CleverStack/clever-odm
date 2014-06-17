@@ -1,66 +1,49 @@
-// var fs = require('fs')
-//   , Injector = require( 'utils' ).injector
-//   , modelInjector = require('utils').modelInjector
-//   , mongoose = require( 'mongoose' );
+var injector    = require( 'injector' )
+  , utils       = require( 'utils' )
+  , async       = require( 'async' )
+  , path        = require( 'path' )
+  , odmUtils    = require( path.resolve( path.join( __dirname, '..', 'lib', 'utils.js' ) ) )
+  , env         = utils.bootstrapEnv()
+  , moduleLdr   = env.moduleLoader;
 
-// // Get the application config
-// var config = require('config');
+// Rebase once our modules have loaded
+moduleLdr.on( 'modulesLoaded', function() {
+    var mongoose = injector.getInstance( 'mongoose' );
 
-// // Setup ORM
-// var Sequelize = require('sequelize');
-// var sequelize = new Sequelize(
-//     config.db.database,
-//     config.db.username,
-//     config.db.password,
-//     config.db.options
-// );
+    console.log('Forcing Database to be created! (Note: All your data will disapear!)');
+    async.waterfall(
+        [
+            function dropDatabase( callback ) {
+                mongoose.connection.db.dropDatabase( function( err ) {
+                    callback( err );
+                });
+            },
 
-// GLOBAL.injector = Injector(  __dirname + '/src/services', __dirname + '/src/controllers' );
-// injector.instance( 'config', config );
-// injector.instance( 'db', sequelize );
-// injector.instance( 'sequelize', sequelize );
-// injector.instance( 'mongoose', mongoose );
+            function createDatabase( callback ) {
+                var schemas = Object.keys( mongoose.connections[ 0 ].base.modelSchemas );
 
-// // Get our models
-// var models = require( 'models' )
-// injector.instance( 'models', models );
+                async.each(
+                    schemas,
+                    function createCollection( key, done ) {
+                        mongoose.model( key, schemas[ key ] ).ensureIndexes( done )
+                    },
+                    callback
+                );
+            }
+        ],
+        function shutdown( err ) {
+            if ( err === null ) {
+                console.log( 'Mongo Database is rebased' );
+                env.moduleLoader.shutdown();
+            } else {
+                console.error('Error ' + env.config['clever-odm'].uri, err);
+                env.moduleLoader.shutdown();
+            }
+        }
+    );
+});
 
-// // Setup ODM
-// if ( config.odm && config.odm.enabled ) {
-//   mongoose.connect(config.mongoose.uri);
-// }
+odmUtils.supportSingleModule( env, process.argv && process.argv[ 2 ] != 'null' ? process.argv[ 2 ] : false );
 
-// // Run our model injection service
-// modelInjector( models );
-
-// // Force a sync
-// console.log('Forcing Database to be created! (Note: All your data will disapear!)');
-
-// sequelize
-//     .sync({force: true})
-//     .success(function () {
-//         fs.readFile(__dirname + '/../schema/' + config.db.options.dialect + '.sql', function(err, sql) {
-//             if ( err || !sql ) {
-//                 console.log('Database is rebased');
-//                 if ( config.odm && config.odm.enabled ) {
-//                   mongoose.disconnect();
-//                 }
-//             } else {
-//                 console.log('Running dialect specific SQL');
-//                 sequelize.query(sql.toString()).success(function() {
-//                     console.log('Database is rebased');
-//                     if ( config.odm && config.odm.enabled ) {
-//                       mongoose.disconnect();
-//                     }
-//                 }).error(function(err) {
-//                         console.error(err);
-//                     });
-//             }
-//         });
-//     })
-//     .error(function( err ) {
-//         console.error('Error trying to connect to ' + config.db.options.dialect, err);
-//         if ( config.odm && config.odm.enabled ) {
-//           mongoose.disconnect();
-//         }
-//     });
+// Load
+moduleLdr.loadModules();
