@@ -1,122 +1,112 @@
-// var crypto = require('crypto')
-//   , async = require('async')
-//   , inflect = require('i')()
-//   , modelInjector = require('utils').modelInjector
-//   , Injector = require( '../src/utils' ).injector
-//   , mongoose = require( 'mongoose' );
+var path        = require( 'path' )
+  , odmUtils    = require( path.resolve( path.join( __dirname, '..', 'lib', 'utils.js' ) ) )
+  , async       = require( 'async' )
+  , utils       = require( 'utils' )
+  , env         = utils.bootstrapEnv()
+  , moduleLdr   = env.moduleLoader
+  , inflect     = require( 'i' )();
 
-// // Get the application config
-// var config = require('./../config');
+// Seed once our modules have loaded
+moduleLdr.on( 'modulesLoaded', function() {
+    var seedData = require( 'seedData' )
+      , models = require( 'models' );
 
-// // Setup ORM
-// var Sequelize = require('sequelize');
-// var sequelize = new Sequelize(
-//     config.db.database,
-//     config.db.username,
-//     config.db.password,
-//     config.db.options
-// );
+    var assocMap = {};
+    Object.keys( seedData ).forEach(function( modelName ) {
+        assocMap[ modelName ] = [];
+    });
 
-// GLOBAL.injector = Injector(  __dirname + '/src/services', __dirname + '/src/controllers' );
-// injector.instance( 'config', config );
-// injector.instance( 'db', sequelize );
-// injector.instance( 'sequelize', sequelize );
-// injector.instance( 'mongoose', mongoose );
+    async.forEachSeries(
+        Object.keys( seedData ),
+        function forEachModelType( modelName, cb ) {
+            var ModelType = models[ modelName.replace( 'Model', '' ) ]
+              , Models = seedData[ modelName ];
 
-// // Get our models
-// var models = require( 'models' )
-// injector.instance( 'models', models );
+            if ( !ModelType || !Models || ModelType.type !== 'ODM' ) {
+                return cb();
+            }
 
-// // Setup ODM
-// if ( config.odm && config.odm.enabled ) {
-//   mongoose.connect(config.mongoose.uri);
-// }
+            async.forEachSeries(
+                Models,
+                function forEachModel( data, modelCb ) {
+                    var assocs = data.associations;
+                    delete data.associations;
 
-// // Run our model injection service
-// modelInjector( models );
+                    ModelType.create( data )
+                        .then(function( model ) {
+                            data.associations = assocs;
 
-// var seedData = require('./../schema/seedData.json');
+                            console.log( 'Created ' + modelName );
+                            assocMap[ modelName ].push( model );
+                            if ( data.associations !== undefined ) {
+                                var assocLength = Object.keys( data.associations ).length
+                                  , called      = 0;
 
-// var assocMap = {};
-// Object.keys(seedData).forEach(function( modelName ) {
-//     assocMap[modelName] = [];
-// });
+                                Object.keys( data.associations ).forEach( function( assocModelName ) {
+                                    var required     = data.associations[ assocModelName ]
+                                      , associations = [];
 
-// async.forEachSeries(
-//     Object.keys(seedData),
-//     function forEachModelType( modelName, cb ) {
-//         var ModelType = models.ORM[modelName]
-//             , Models = seedData[modelName];
+                                    assocMap[ assocModelName ].forEach( function( m ) {
+                                        var isMatched = null;
 
-//         async.forEachSeries(
-//             Models,
-//             function forEachModel( data, modelCb ) {
-//                 var assocs = data.associations;
-//                 delete data.associations;
+                                        Object.keys( required ).forEach( function( reqKey ) {
+                                            if ( isMatched !== false ) {
+                                                if ( m[ reqKey ] === required[ reqKey ] ) {
+                                                    isMatched = true;
+                                                } else {
+                                                    isMatched = false;
+                                                }
+                                            }
+                                        });
 
-//                 ModelType.create(data).success(function( model ) {
-//                     data.associations = assocs;
+                                        if ( isMatched ) {
+                                            associations.push( m );
+                                        }
+                                    });
 
-//                     console.log('Created ' + modelName);
-//                     assocMap[modelName].push(model);
-//                     if ( data.associations !== undefined ) {
-//                         var assocLength = Object.keys(data.associations).length,
-//                             called = 0;
+                                    if ( associations.length ) {
+                                        var funcName = 'set' + inflect.pluralize( assocModelName );
 
-//                         Object.keys(data.associations).forEach(function( assocModelName ) {
-//                             var required = data.associations[assocModelName]
-//                                 , associations = [];
+                                        // Handle hasOne
+                                        if ( typeof model[ funcName ] !== 'function' ) {
+                                            funcName = 'set' + assocModelName;
+                                            associations = associations[ 0 ];
+                                        }
+                                        
+                                        // strip "Model" from funcName
+                                        funcName = funcName.replace( /(Model)$/g,'' );
 
-//                             assocMap[assocModelName].forEach(function( m ) {
-//                                 var isMatched = null;
+                                        console.log( 'Calling ' + funcName );
+                                        model[ funcName ]( associations )
+                                            .success(function() {
+                                                called++;
 
-//                                 Object.keys(required).forEach(function( reqKey ) {
-//                                     if ( isMatched !== false ) {
-//                                         if ( m[reqKey] === required[reqKey] ) {
-//                                             isMatched = true;
-//                                         } else {
-//                                             isMatched = false;
-//                                         }
-//                                     }
-//                                 });
+                                                if ( called == assocLength ) {
+                                                    modelCb( null );
+                                                }
+                                            })
+                                            .error( modelCb );
+                                    }
+                                });
+                            } else {
+                                modelCb( null );
+                            }
+                        })
+                        .catch( modelCb );
+                },
+                function forEachModelComplete( err ) {
+                    cb( err );
+                }
+            );
+        },
+        function forEachModelTypeComplete( err ) {
+            console.log( err ? 'Error: ' : 'Seed completed with no errors', err );
+            env.moduleLoader.shutdown();
+        }
+    );
+});
 
-//                                 if ( isMatched ) {
-//                                     associations.push(m);
-//                                 }
-//                             });
+odmUtils.supportSingleModule( env, process.argv && process.argv[ 2 ] != 'null' ? process.argv[ 2 ] : false );
 
-//                             if ( associations.length ) {
-//                                 var funcName = 'set' + inflect.pluralize(assocModelName);
-
-//                                 // Handle hasOne
-//                                 if ( typeof model[funcName] !== 'function' ) {
-//                                     funcName = 'set' + assocModelName;
-//                                     associations = associations[0];
-//                                 }
-
-//                                 console.log('Calling ' + funcName);
-//                                 model[funcName](associations).success(function() {
-//                                     called++;
-
-//                                     if ( called == assocLength )
-//                                         modelCb(null);
-//                                 }).error(modelCb);
-//                             }
-//                         });
-//                     } else {
-//                         modelCb(null);
-//                     }
-//                 }).error(modelCb);
-//             },
-//             function forEachModelComplete( err ) {
-//                 cb(err);
-//             }
-//         );
-//     },
-//     function forEachModelTypeComplete( err ) {
-//         console.log(err ? 'Error: ' : 'Seed completed with no errors', err);
-//         if ( config.odm && config.odm.enabled ) {
-//           mongoose.disconnect();
-//         }
-//     }
-// );
+// Load
+moduleLdr.loadModules();
