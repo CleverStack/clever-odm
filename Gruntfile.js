@@ -32,10 +32,10 @@ module.exports = function( grunt ) {
         },
         exec: {
             odmRebase: {
-                cmd: "NODE_PATH=./lib/:./modules/; node modules/clever-odm/bin/rebase.js " + dbTarget
+                cmd: "node modules/clever-odm/bin/rebase.js " + dbTarget
             },
             odmSeed: {
-                cmd: "NODE_PATH=./lib/:./modules/; node modules/clever-odm/bin/seedModels.js " + dbTarget
+                cmd: "node modules/clever-odm/bin/seedModels.js " + dbTarget
             }
         }
     }, function( grunt ) {
