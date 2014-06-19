@@ -91,7 +91,7 @@ module.exports = Module.extend({
         }
 
         // Handle options
-        [ 'unique', 'required', 'default', 'min', 'max', 'lowercase', 'match', 'trim', 'uppercase' ].forEach(function( optionName ) {
+        [ 'unique', 'default', 'lowercase', 'trim', 'uppercase' ].forEach(function( optionName ) {
             if ( options[ optionName ] !== undefined ) {
                 fieldDefinition[ optionName ] = options[ optionName ];
             }
