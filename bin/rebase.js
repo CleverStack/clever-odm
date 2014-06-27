@@ -32,7 +32,7 @@ moduleLdr.on( 'modulesLoaded', function() {
             }
         ],
         function shutdown( err ) {
-            if ( err === null ) {
+            if ( err === null || err === undefined ) {
                 console.log( 'Mongo Database is rebased' );
                 process.exit( 0 );
             } else {
