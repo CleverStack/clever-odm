@@ -3,28 +3,67 @@
 var fs          = require( 'fs' )
   , path        = require( 'path' )
   , pkgJson     = require( path.resolve( path.join( __dirname, '..', '..', 'package.json') ) )
-  , ormEnabled  = pkgJson.bundledDependencies.indexOf( 'clever-orm' ) !== -1;
+  , ormEnabled  = pkgJson.bundledDependencies.indexOf( 'clever-orm' ) !== -1
+  , _           = require( 'underscore' );
 
 module.exports = function( grunt ) {
-    // Arguments for individual module rebase/seed
-    var dbTarget = grunt.option( 'module' ) || null;
+    var dbTarget        = grunt.option( 'module' ) || null
+      , defaultConfig   = require( path.join( __dirname, 'config', 'default.json' ) )
+      , configFile      = null
+      , config          = {};
 
     return [{
         prompt: {
-            cleverOdmConfig: {
+            odmConfigPrompt: {
                 options: {
                     questions: [
                         {
-                            config: 'cleverOdm.uri',
-                            type: 'input',
-                            message: 'Mongo URI',
-                            default: '',
+                            config: 'cleverstackodm.environment',
+                            type: 'list',
+                            message: 'What environment is this configuration for?',
+                            choices: [
+                                { name: 'LOCAL' },
+                                { name: 'TEST' },
+                                { name: 'DEV' },
+                                { name: 'STAG' },
+                                { name: 'PROD' }
+                            ],
+                            default: function() {
+                                return process.env.NODE_ENV ? process.env.NODE_ENV.toUpperCase() : 'LOCAL';
+                            },
+                            filter: function( env ) {
+                                _.extend( config, defaultConfig );
+
+                                configFile = path.resolve( path.join( __dirname, '..', '..', 'config', env.toLowerCase() + '.json' ) );
+
+                                if ( fs.existsSync( configFile ) ) {
+                                    _.extend( config, require( configFile ) );
+                                    
+                                    Object.keys( defaultConfig[ 'clever-odm' ] ).forEach( function( key ) {
+                                        if ( typeof config[ 'clever-odm' ][ key ] === 'undefined' ) {
+                                            config[ 'clever-odm' ][ key ] = defaultConfig[ 'clever-odm' ][ key ];
+                                        }
+                                    });
+                                }
+
+                                return true;
+                            }
                         },
                         {
-                            config: 'cleverOdm.debug',
-                            type: 'boolean',
-                            message: 'Enable mongoose debug mode?',
-                            default: true
+                            config: 'cleverstackodm.uri',
+                            type: 'input',
+                            message: 'Mongo URI',
+                            default: function() {
+                                return config[ 'clever-odm' ].uri !== '' ? config[ 'clever-odm' ].uri : 'mongodb://localhost/nodeseed';
+                            }
+                        },
+                        {
+                            config: 'cleverstackodm.mongoose.debug',
+                            type: 'confirm',
+                            message: 'Enable debugging',
+                            default: function() {
+                                return config[ 'clever-odm' ].mongoose.debug !== '' ? config[ 'clever-odm' ].mongoose.debug : 'mongodb://localhost/nodeseed';
+                            }
                         }
                     ]
                 }
@@ -39,7 +78,7 @@ module.exports = function( grunt ) {
             }
         }
     }, function( grunt ) {
-        grunt.loadNpmTasks('grunt-prompt');
+        grunt.loadNpmTasks( 'grunt-prompt' );
 
         // Register each command
         grunt.registerTask( 'db:odmRebase', [ 'exec:odmRebase' ] );
@@ -65,26 +104,17 @@ module.exports = function( grunt ) {
             console.log( '' );
             console.log( '2. From your project\'s `backend` folder, run `NODE_ENV=local grunt db`.' );
             console.log( 'The database tables for your modules should now be installed and seeded with data!' );
-        } );
+        });
 
-        grunt.registerTask( 'prompt:cleverOdm', [ 'prompt:cleverOdmConfig', 'cleverOdmCreateConfig' ] );
-        grunt.registerTask( 'cleverOdmCreateConfig', 'Creates a .json config file for database credentials', function ( ) {
-            var conf = grunt.config( 'cleverOdm' )
-              , obj  = {
-                    'clever-odm': { mongoose: {} }
-                }
-              , env  = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'local'
-              , file = path.join( process.cwd( ), 'config', env + '.json' );
+        grunt.registerTask( 'prompt:cleverOdmConfig', [ 'prompt:odmConfigPrompt', 'cleverOdmCreateConfig' ] );
+        grunt.registerTask( 'cleverOdmCreateConfig', 'Creates a .json config file for database credentials', function() {
+            var conf = grunt.config( 'cleverstackodm' );
 
-            if ( fs.existsSync( file ) ) {
-                obj = require( file );
-            }
+            delete conf.environment;
 
-            obj[ 'clever-odm' ] = obj[ 'clever-odm' ] || {};
-            obj[ 'clever-odm' ].uri = conf.uri;
-            obj[ 'clever-odm' ].mongoose.debug = conf.debug;
+            config[ 'clever-odm' ] = _.extend( config[ 'clever-odm' ], conf );
 
-            fs.writeFileSync( file, JSON.stringify( obj, null, '  ' ) );
-        } );
+            fs.writeFileSync( configFile, JSON.stringify( config, null, '    ' ) );
+        });
     }];
 };
