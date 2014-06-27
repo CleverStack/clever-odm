@@ -1,34 +1,41 @@
 {
-  "name": "clever-odm",
-  "version": "1.0.1",
-  "dependencies": {
-    "mongoose": "~3.6.20"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/CleverStack/clever-odm.git"
-  },
-  "author": {
-    "name": "CleverStack",
-    "email": "admin@cleverstack.io",
-    "web": "http://cleverstack.io"
-  },
-  "collaborators": [
-    "Richard Gustin <richard.gustin86@gmail.com>"
-  ],
-  "license": "BSD-2-Clause",
-  "bugs": {
-    "url": "https://github.com/CleverStack/clever-odm/issues"
-  },
-  "description": "CleverStack ODM (NoSQL) Module",
-  "keywords": [
-    "cleverstack",
-    "clevertech",
-    "cleverstack-module",
-    "cleverstack-backend"
-  ],
-  "main": "module.js",
-  "devDependencies": {
-
-  }
+    "name": "clever-odm",
+    "description": "CleverStack ODM (NoSQL) Module",
+    "version": "1.0.2",
+    "main": "module.js",
+    "author": {
+        "name": "CleverStack",
+        "email": "admin@cleverstack.io",
+        "web": "http://cleverstack.io"
+    },
+    "collaborators": [
+        "Richard Gustin <richard.gustin86@gmail.com>"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/CleverStack/clever-odm.git"
+    },
+    "bugs": {
+        "url": "https://github.com/CleverStack/clever-odm/issues"
+    },
+    "keywords": [
+        "cleverstack",
+        "cleverstack-module",
+        "cleverstack-backend",
+        "odm",
+        "object document mapper",
+        "dao",
+        "mongoose",
+        "mongoosejs",
+        "mongo",
+        "mongodb"
+    ],
+    "license": "BSD-2-Clause",
+    "dependencies": {
+        "mongoose": "~3.6.20"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.2",
+        "grunt-prompt": "~1.1.0"
+    }
 }
