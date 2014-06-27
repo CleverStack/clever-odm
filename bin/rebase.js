@@ -34,10 +34,10 @@ moduleLdr.on( 'modulesLoaded', function() {
         function shutdown( err ) {
             if ( err === null ) {
                 console.log( 'Mongo Database is rebased' );
-                env.moduleLoader.shutdown();
+                process.exit( 0 );
             } else {
-                console.error('Error ' + env.config['clever-odm'].uri, err);
-                env.moduleLoader.shutdown();
+                console.error( 'Error ' + env.config['clever-odm'].uri, err );
+                process.exit( 1 );
             }
         }
     );
