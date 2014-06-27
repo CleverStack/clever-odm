@@ -1,7 +1,7 @@
 {
     "name": "clever-odm",
     "description": "CleverStack ODM (NoSQL) Module",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "main": "module.js",
     "author": {
         "name": "CleverStack",

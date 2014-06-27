@@ -21,3 +21,7 @@ See [cleverstack.io](http://cleverstack.io/documentation/#backend) for more deta
 
 3. From your project's `backend` folder.
 The database tables for your modules should now be installed!
+
+## License
+
+See our [LICENSE](https://github.com/CleverStack/clever-odm/blob/master/LICENSE)
