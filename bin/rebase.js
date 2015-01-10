@@ -2,7 +2,7 @@ var injector    = require( 'injector' )
   , utils       = require( 'utils' )
   , async       = require( 'async' )
   , path        = require( 'path' )
-  , odmUtils    = require( path.resolve( path.join( __dirname, '..', 'lib', 'utils.js' ) ) )
+  , odmUtils    = require( path.resolve( path.join( __dirname, '..', 'utils', 'odmUtils.js' ) ) )
   , env         = utils.bootstrapEnv()
   , moduleLdr   = env.moduleLoader;
 
