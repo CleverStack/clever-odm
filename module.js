@@ -1,8 +1,11 @@
 var mongoose    = require( 'mongoose' )
   , injector    = require( 'injector' )
-  , Module      = require( 'classes' ).Module;
+  , Module      = require( 'classes' ).Module
+  , Model       = require( 'classes' ).Model
+  , odmUtils    = require( 'utils' ).odmUtils
+  , dbRef       = require( 'mongoose-dbref' );
 
-module.exports = Module.extend({
+module.exports  = Module.extend({
 
     models: {},
 
@@ -11,24 +14,66 @@ module.exports = Module.extend({
     preSetup: function() {
         this.debug( 'Opening database connection to Mongo ' + this.config.uri + '...' );
 
-        mongoose.set( 'debug', this.config.mongoose.debug );
-    },
-
-    modulesLoaded: function() {
-        mongoose.connect( this.config.uri, this.proxy( 'handleMongoConnect' ) );
-    },
-
-    handleMongoConnect: function( err ) {
-        this.emit( 'ready', err );
+        if ( this.config.mongoose && undefined !== this.config.mongoose.debug ) {
+            mongoose.set( 'debug', this.config.mongoose.debug );
+        }
     },
 
     preInit: function() {
         this.debug( 'Adding mongoose to the injector...' );
 
         injector.instance( 'mongoose', mongoose );
+        injector.instance( 'mongoose-dbref', dbRef );
     },
 
-    parseModelSchema: function( Static ) {
+    modulesLoaded: function() {
+        // this.defineModelsAssociations();
+        mongoose.connect( this.config.uri, this.proxy( 'handleMongoConnect' ) );
+    },
+
+    defineModelsAssociations: function() {
+        this.debug( 'Defining model assocations' );
+
+        Object.keys( this.config.modelAssociations ).forEach( this.proxy( function( modelName ) {
+            Object.keys( this.config.modelAssociations[ modelName ] ).forEach( this.proxy( 'defineModelAssociations', modelName ) );
+        }));
+    },
+
+    defineModelAssociations: function( Static, Proto, assocType ) {
+        var modelName = Static._name
+          , associatedWith = this.config.modelAssociations[ modelName ][ assocType ];
+
+        if ( ! associatedWith instanceof Array ) {
+            associatedWith = [ associatedWith ];
+        }
+
+        associatedWith.forEach( this.proxy( 'associateModels', Static, Proto, assocType ) );
+    },
+
+    associateModels: function( Static, Proto, assocType, assocTo ) {
+        var modelName = Static._name;
+
+        // Support second argument
+        if ( assocTo instanceof Array ) {
+            this.debug( '%s %s %s with second argument of ', modelName, assocType, assocTo[0], assocTo[1] );
+
+            if ( assocTo[ 1 ].through ) {
+                assocTo[ 1 ].through =  this.models[ assocTo[ 1 ].through.replace( 'Model', '' ) ];
+            }
+
+            require( 'models' )[ modelName ][ assocType ]( require( 'models' )[ assocTo[0] ], assocTo[1] );
+        } else {
+            this.debug( '%s %s %s', modelName, assocType, assocTo );
+            odmUtils[ assocType ]( mongoose, Static, Proto, assocTo );
+        }
+    },
+
+    handleMongoConnect: function( err ) {
+        dbRef.install( mongoose );
+        this.emit( 'ready', err );
+    },
+
+    parseModelSchema: function( Static, Proto ) {
         var parseDebug = this.proxy(function( msg ) { 
                 this.debug( Static._name + 'Model: ' + msg ); 
             })
@@ -43,6 +88,10 @@ module.exports = Module.extend({
         parseDebug( 'Parsing options...' );
         if ( !!Static.dbName ) {
             mongooseConf.collection = Static.dbName;
+        }
+
+        if ( this.config.modelAssociations[ Static._name ] ) {
+            Object.keys( this.config.modelAssociations[ Static._name ] ).forEach( this.proxy( 'defineModelAssociations', Static, Proto ) );
         }
 
         parseDebug( 'Parsing schema...' );
@@ -97,6 +146,11 @@ module.exports = Module.extend({
             }
         });
 
+        if ( typeof fieldDefinition.type === 'object' && fieldDefinition.type.type ) {
+            fieldDefinition.ref     = fieldDefinition.type.ref;
+            fieldDefinition.type    = fieldDefinition.type.type;
+        }
+
         fields[ name ] = fieldDefinition;
     },
 
@@ -105,6 +159,11 @@ module.exports = Module.extend({
 
         switch( options.type ) {
 
+        case mongoose.Schema.ObjectId:
+            options.ref = options.of;
+            delete options.of;
+            field = options;
+            break;
         case Number:
         case String:
         case Boolean:
@@ -113,7 +172,7 @@ module.exports = Module.extend({
             field = options.type;
             break;
         case Array:
-            field = options.of ? [ this.getFieldType( Static, { type: options.of } ) ] : [ String ];
+            field = options.of ? [ this.getFieldType( Static, options.of ) ] : [ String ];
             break;
         case Model.Types.ENUM:
             throw new Error( 'ENUM is not supported for ODM (yet)' );

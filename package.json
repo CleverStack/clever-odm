@@ -32,7 +32,8 @@
     ],
     "license": "BSD-2-Clause",
     "dependencies": {
-        "mongoose": "~3.6.20"
+        "mongoose": "~3.6.20",
+        "mongoose-dbref": "0.0.2"
     },
     "devDependencies": {
         "grunt": "~0.4.2",
