@@ -1,11 +1,13 @@
-var mongoose    = require( 'mongoose' )
-  , injector    = require( 'injector' )
-  , Module      = require( 'classes' ).Module
-  , Model       = require( 'classes' ).Model
-  , odmUtils    = require( 'utils' ).odmUtils
-  , dbRef       = require( 'mongoose-dbref' );
+var mongoose        = require( 'mongoose' )
+  , injector        = require( 'injector' )
+  , Module          = require( 'classes' ).Module
+  , Model           = require( 'classes' ).Model
+  , odmUtils        = require( 'utils' ).odmUtils
+  , dbRef           = require( 'mongoose-dbref' )
+  , deepPopulate    = require( 'mongoose-deep-populate' );
 
-module.exports  = Module.extend({
+
+module.exports      = Module.extend({
 
     models: {},
 
@@ -23,11 +25,11 @@ module.exports  = Module.extend({
         this.debug( 'Adding mongoose to the injector...' );
 
         injector.instance( 'mongoose', mongoose );
-        injector.instance( 'mongoose-dbref', dbRef );
+        injector.instance( 'mongooseDbRef', dbRef );
+        injector.instance( 'mongooseDeepPopulate', deepPopulate );
     },
 
     modulesLoaded: function() {
-        // this.defineModelsAssociations();
         mongoose.connect( this.config.uri, this.proxy( 'handleMongoConnect' ) );
     },
 
@@ -51,20 +53,23 @@ module.exports  = Module.extend({
     },
 
     associateModels: function( Static, Proto, assocType, assocTo ) {
-        var modelName = Static._name;
+        var modelName   = Static._name
+          , models      = require( 'models' );
 
-        // Support second argument
-        if ( assocTo instanceof Array ) {
-            this.debug( '%s %s %s with second argument of ', modelName, assocType, assocTo[0], assocTo[1] );
+        if ( Static.type.toLowerCase() === 'odm' ) {
+            // Support second argument
+            if ( assocTo instanceof Array ) {
+                this.debug( '%s %s %s with second argument of ', modelName, assocType, assocTo[0], assocTo[1] );
 
-            if ( assocTo[ 1 ].through ) {
-                assocTo[ 1 ].through =  this.models[ assocTo[ 1 ].through.replace( 'Model', '' ) ];
+                if ( assocTo[ 1 ].through ) {
+                    assocTo[ 1 ].through =  models[ assocTo[ 1 ].through.replace( 'Model', '' ) ];
+                }
+
+                models[ modelName ][ assocType ]( models[ assocTo[0] ], assocTo[1] );
+            } else {
+                this.debug( '%s %s %s', modelName, assocType, assocTo );
+                odmUtils[ assocType ]( mongoose, Static, Proto, assocTo );
             }
-
-            require( 'models' )[ modelName ][ assocType ]( require( 'models' )[ assocTo[0] ], assocTo[1] );
-        } else {
-            this.debug( '%s %s %s', modelName, assocType, assocTo );
-            odmUtils[ assocType ]( mongoose, Static, Proto, assocTo );
         }
     },
 
@@ -100,8 +105,14 @@ module.exports  = Module.extend({
         parseDebug( 'Set _db to mongoose...' );
         Static._db = mongoose;
 
+        parseDebug( 'Generating mongoose schema...' );
+        var schema = new mongoose.Schema( fields, mongooseConf );
+
         parseDebug( 'Generating new native model using computed schema...' );
-        var model = mongoose.model( Static._name, new mongoose.Schema( fields, mongooseConf ) );
+        var model = mongoose.model( Static._name, schema );
+
+        parseDebug( 'Registering deepPopulate plugin...' );
+        schema.plugin( deepPopulate, {} );
 
         parseDebug( 'Caching completed model...' );
         this.models[ Static._name ] = model;

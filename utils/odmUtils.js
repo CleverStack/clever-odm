@@ -11,49 +11,79 @@ module.exports  = {
         }
     },
 
-    hasMany: function( mongoose, owningModel, owningProto, inverseModel ) {
-        var pluralName = inflect.pluralize( inverseModel );
+    hasMany: function( mongoose, model, proto, assocTo ) {
+        var fieldName = inflect.singularize( inflect.camelize( assocTo, true ) )
 
-        owningModel._schema[ pluralName ] = [ { type: mongoose.Schema.ObjectId, of: inverseModel } ];
-        owningModel._getters[ pluralName ] = function() {
-            return this._model[ pluralName ];
-        };
-        owningModel._setters[ pluralName ] = function( val ) {
-            this._model[ pluralName ] = val;
-        };
-        owningProto[ 'add' + inflect.camelize( pluralName, true ) ] = function( val ) {
-            if ( !( this._model[ pluralName ] instanceof Array ) ) {
-                this._model[ pluralName ] = [];
+        model._schema[ fieldName ]     = [
+            {
+                type    : mongoose.Schema.ObjectId,
+                of      : assocTo
             }
-            this._model[ pluralName ].push( val );
+        ];
+        model._getters[ fieldName ]    = function() {
+            return this._model[ fieldName ];
+        };
+        model._setters[ fieldName ]    = function( val ) {
+            this._dirty                = true;
+            this._model[ fieldName ]   = val;
+            this._changed.push( fieldName );
+
+            return this;
+        };
+        proto[ 'add' + inflect.camelize( fieldName, true ) ] = function( val ) {
+            if ( !( this._model[ fieldName ] instanceof Array ) ) {
+                this._model[ fieldName ] = [];
+            }
+            this._dirty                = true;
+            this._model[ fieldName ].push( val );
+            this._changed.push( fieldName );
+
             return this.save();
         };
-        owningProto[ 'set' + inflect.camelize( pluralName, true ) ] = function( val ) {
-            this._model[ pluralName ] = val instanceof Array ? val : [ val ];
+        proto[ 'set' + inflect.camelize( fieldName, true ) ] = function( val ) {
+            this._dirty                = true;
+            this._model[ fieldName ]   = val instanceof Array ? val : [ val ];
+            this._changed.push( fieldName );
+
             return this.save();
         };
     },
 
-    belongsTo: function( mongoose, owningModel, owningProto, inverseModel ) {
-        var idName = inverseModel + 'Id';
+    belongsTo: function( mongoose, model, proto, assocTo ) {
+        var fieldName   = inflect.singularize( inflect.camelize( assocTo, true ) )
+          , idName      = fieldName + 'Id';
 
-        owningModel._schema[ inverseModel ] = { type: mongoose.Schema.ObjectId, of: inverseModel };
-        owningModel._getters[ inverseModel ] = function() {
-            return this._model[ inverseModel ];
+        model._schema[ fieldName ]      = {
+            type    : mongoose.Schema.ObjectId,
+            of      : assocTo
         };
-        owningModel._setters[ inverseModel ] = function( val ) {
-            console.log('setting ' + inverseModel + ' to ');
-            console.dir( val );
-            this._model[ inverseModel ] = val;
+        model._getters[ fieldName ]     = function() {
+            return this._model[ fieldName ];
         };
-        owningModel._getters[ idName ] = function() {
-            return this._model[ inverseModel ] && this._model[ inverseModel ]._model && this._model[ inverseModel ]._model._id ? this._model[ inverseModel ]._model._id : this._model[ inverseModel ];
+        model._setters[ fieldName ]     = function( val ) {
+            this._dirty                 = true;
+            this._model[ fieldName ]    = val;
+            this._changed.push( fieldName );
+
+            return this;
         };
-        owningModel._setters[ idName ] = function( val ) {
-            this._model[ inverseModel ] = val.id || val;
+        model._getters[ idName ]        = function() {
+            return this._model[ fieldName ] &&
+                this._model[ assocTo ]._model &&
+                this._model[ assocTo ]._model._id ? this._model[ assocTo ]._model._id : this._model[ assocTo ];
         };
-        owningProto[ 'set' + inflect.singularize( inflect.camelize( inverseModel, true ) ) ] = function( val ) {
-            this._model[ inverseModel ] = val;
+        model._setters[ idName ]        = function( val ) {
+            this._dirty                 = true;
+            this._model[ fieldName ]    = val.id || val;
+            this._changed.push( fieldName );
+
+            return this;
+        };
+        proto[ 'set' + fieldName ]      = function( val ) {
+            this._dirty                 = true;
+            this._model[ fieldName ]    = val;
+            this._changed.push( fieldName );
+
             return this.save();
         };
     }
