@@ -100,7 +100,7 @@ module.exports      = Module.extend({
         }
 
         parseDebug( 'Parsing schema...' );
-        Object.keys( Static._schema ).forEach( this.proxy( 'parseSchemaField', Static, fields, mongooseConf ) );
+        Object.keys( Static.fields ).forEach( this.proxy( 'defineField', Static, fields, mongooseConf ) );
 
         parseDebug( 'Set _db to mongoose...' );
         Static._db = mongoose;
@@ -120,8 +120,8 @@ module.exports      = Module.extend({
         return model;
     },
 
-    parseSchemaField: function( Static, fields, mongooseConf, name ) {
-        var options = Static._schema[ name ]
+    defineField: function( Static, fields, mongooseConf, name ) {
+        var options = Static.fields[ name ]
           , fieldDefinition = {};
 
         // Allow direct syntax

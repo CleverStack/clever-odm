@@ -40,9 +40,9 @@ var odmUtils    = module.exports  = {
         return populate.length ? populate : false;
     },
 
-    afterEagerLoad: function( findOptions, callback, err, _model ) {
+    afterEagerLoad: function( findOptions, callback, err, entity ) {
         if ( err === undefined || err === null ) {
-            var model = !!_model && _model !== null ? new that( _model ) : null;
+            var model = !!entity && entity !== null ? new that( entity ) : null;
 
             if ( model !== null && findOptions.include && findOptions.include.length ) {
                 findOptions.include.forEach( function( _include ) {
@@ -50,16 +50,16 @@ var odmUtils    = module.exports  = {
                       , as          = modelName
                       , csModel     = models[ modelName ];
 
-                    if ( !!csModel && !!model._model[ as ] ) {
-                        if ( model._model[ as ] instanceof Array ) {
-                            for ( var i = 0; i < model._model[ as ].length; i++ ) {
-                                if ( !( model._model[ as ][ i ] instanceof csModel ) ) {
-                                    model._model._doc[ as ][ i ] = new csModel( model._model[ as ][ i ] );
+                    if ( !!csModel && !!model.entity[ as ] ) {
+                        if ( model.entity[ as ] instanceof Array ) {
+                            for ( var i = 0; i < model.entity[ as ].length; i++ ) {
+                                if ( !( model.entity[ as ][ i ] instanceof csModel ) ) {
+                                    model.entity._doc[ as ][ i ] = new csModel( model.entity[ as ][ i ] );
                                 }
                             }
                         } else {
-                            if ( !( model._model[ as ] instanceof csModel ) ) {
-                                model._model._doc[ as ] = new csModel( model[ as ] );
+                            if ( !( model.entity[ as ] instanceof csModel ) ) {
+                                model.entity._doc[ as ] = new csModel( model[ as ] );
                             }
                         }
                     }
@@ -79,9 +79,9 @@ var odmUtils    = module.exports  = {
         odmUtils.renameId( findOptions );
 
         if ( ( eagerlyLoadedModels = odmUtils.eagerLoad( findOptions ) ) !== false ) {
-            that._model.findOne( findOptions.where ).deepPopulate( eagerlyLoadedModels.join( ' ' ) ).exec( afterEagerLoad );
+            that.entity.findOne( findOptions.where ).deepPopulate( eagerlyLoadedModels.join( ' ' ) ).exec( afterEagerLoad );
         } else {
-            that._model.findOne( findOptions.where, afterEagerLoad );
+            that.entity.findOne( findOptions.where, afterEagerLoad );
         }
     },
 
@@ -93,10 +93,10 @@ var odmUtils    = module.exports  = {
                 populate.push( modelInclude.model.modelName );
             });
 
-            that._model.find( findOptions.where ).deepPopulate( populate.join( ' ' ) ).exec( callback );
+            that.entity.find( findOptions.where ).deepPopulate( populate.join( ' ' ) ).exec( callback );
 
         } else {
-            that._model.find( findOptions.where, callback );
+            that.entity.find( findOptions.where, callback );
         }
     },
 
@@ -105,14 +105,14 @@ var odmUtils    = module.exports  = {
 
         ormUtils.eagerLoad( findOptions );
 
-        this._model
+        this.entity
         .findAll( findOptions, options )
-        .then( function( _models ) {
+        .then( function( entitys ) {
             var models = [];
             
-            _models = _models instanceof Array ? _models : [ _models ];
+            entitys = entitys instanceof Array ? entitys : [ entitys ];
 
-            _models.forEach(function( model ) {
+            entitys.forEach(function( model ) {
                 if ( model !== null ) {
                     model = new that( model );
 
@@ -136,30 +136,24 @@ var odmUtils    = module.exports  = {
                 of      : assocTo
             }
         ];
-        model._getters[ fieldName ]    = function() {
-            return this._model[ fieldName ];
+        model.getters[ fieldName ]    = function() {
+            return this.entity[ fieldName ];
         };
-        model._setters[ fieldName ]    = function( val ) {
-            this._dirty                = true;
-            this._model[ fieldName ]   = val;
-            this._changed.push( fieldName );
+        model.setters[ fieldName ]    = function( val ) {
+            this.entity[ fieldName ]   = val;
 
             return this;
         };
         proto[ 'add' + inflect.camelize( fieldName, true ) ] = function( val ) {
-            if ( !( this._model[ fieldName ] instanceof Array ) ) {
-                this._model[ fieldName ] = [];
+            if ( !( this.entity[ fieldName ] instanceof Array ) ) {
+                this.entity[ fieldName ] = [];
             }
-            this._dirty                = true;
-            this._model[ fieldName ].push( val );
-            this._changed.push( fieldName );
+            this.entity[ fieldName ].push( val );
 
             return this.save();
         };
         proto[ 'set' + inflect.camelize( fieldName, true ) ] = function( val ) {
-            this._dirty                = true;
-            this._model[ fieldName ]   = val instanceof Array ? val : [ val ];
-            this._changed.push( fieldName );
+            this.entity[ fieldName ]   = val instanceof Array ? val : [ val ];
 
             return this.save();
         };
@@ -173,32 +167,26 @@ var odmUtils    = module.exports  = {
             type    : mongoose.Schema.ObjectId,
             of      : assocTo
         };
-        model._getters[ fieldName ]     = function() {
-            return this._model[ fieldName ];
+        model.getters[ fieldName ]     = function() {
+            return this.entity[ fieldName ];
         };
-        model._setters[ fieldName ]     = function( val ) {
-            this._dirty                 = true;
-            this._model[ fieldName ]    = val;
-            this._changed.push( fieldName );
+        model.setters[ fieldName ]     = function( val ) {
+            this.entity[ fieldName ]    = val;
 
             return this;
         };
-        model._getters[ idName ]        = function() {
-            return this._model[ fieldName ] &&
-                this._model[ assocTo ]._model &&
-                this._model[ assocTo ]._model._id ? this._model[ assocTo ]._model._id : this._model[ assocTo ];
+        model.getters[ idName ]        = function() {
+            return this.entity[ fieldName ] &&
+                this.entity[ assocTo ].entity &&
+                this.entity[ assocTo ].entity._id ? this.entity[ assocTo ].entity._id : this.entity[ assocTo ];
         };
-        model._setters[ idName ]        = function( val ) {
-            this._dirty                 = true;
-            this._model[ fieldName ]    = val.id || val;
-            this._changed.push( fieldName );
+        model.setters[ idName ]        = function( val ) {
+            this.entity[ fieldName ]    = val.id || val;
 
             return this;
         };
         proto[ 'set' + fieldName ]      = function( val ) {
-            this._dirty                 = true;
-            this._model[ fieldName ]    = val;
-            this._changed.push( fieldName );
+            this.entity[ fieldName ]    = val;
 
             return this.save();
         };

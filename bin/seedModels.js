@@ -91,7 +91,7 @@ moduleLdr.on( 'modulesLoaded', function() {
                                             
                                             requiredModels.forEach( function( requiredModel ) {
                                                 if ( ( associatedModel = _.findWhere( assocMap[ assocModelName ], requiredModel )) !== undefined ) {
-                                                    associations.push( associatedModel._model );
+                                                    associations.push( associatedModel.entity );
                                                 }
                                             });
                                         });
@@ -101,11 +101,11 @@ moduleLdr.on( 'modulesLoaded', function() {
                                             assocModelName = assocModelName.replace( /(Model)$/g, '' );
                                             var assocConfig = config[ 'clever-odm' ].modelAssociations[  modelName.replace( /(Model)$/g, '' ) ];
                                             Object.keys( assocConfig ).every( function( associatedModelType ) {
-                                                assocConfig[ associatedModelType ].forEach( function( _model ) {
-                                                    _model = _model instanceof Array ? _model : [ _model, {} ];
+                                                assocConfig[ associatedModelType ].forEach( function( entity ) {
+                                                    entity = entity instanceof Array ? entity : [ entity, {} ];
 
-                                                    if ( assocModelName === _model[ 0 ] ) {
-                                                        assocModelName = inflect.camelize( _model[ 1 ].as ? _model[ 1 ].as : _model[ 0 ] );
+                                                    if ( assocModelName === entity[ 0 ] ) {
+                                                        assocModelName = inflect.camelize( entity[ 1 ].as ? entity[ 1 ].as : entity[ 0 ] );
                                                         return false;
                                                     }
 
@@ -116,7 +116,7 @@ moduleLdr.on( 'modulesLoaded', function() {
                                             var funcName = 'set' + inflect.pluralize( assocModelName.replace( /(Model)$/g,'' ) );
 
                                             // Handle hasOne
-                                            if ( typeof model._model[ funcName ] !== 'function' ) {
+                                            if ( typeof model.entity[ funcName ] !== 'function' ) {
                                                 funcName = 'set' + assocModelName.replace( /(Model)$/g,'' );
                                                 associations = associations[ 0 ];
                                             }
