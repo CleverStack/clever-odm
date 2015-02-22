@@ -42,7 +42,7 @@ module.exports      = Module.extend({
     },
 
     defineModelAssociations: function( Static, Proto, assocType ) {
-        var modelName = Static._name
+        var modelName = Static.modelName
           , associatedWith = this.config.modelAssociations[ modelName ][ assocType ];
 
         if ( ! associatedWith instanceof Array ) {
@@ -53,7 +53,7 @@ module.exports      = Module.extend({
     },
 
     associateModels: function( Static, Proto, assocType, assocTo ) {
-        var modelName   = Static._name
+        var modelName   = Static.modelName
           , models      = require( 'models' );
 
         if ( Static.type.toLowerCase() === 'odm' ) {
@@ -80,14 +80,14 @@ module.exports      = Module.extend({
 
     parseModelSchema: function( Static, Proto ) {
         var parseDebug = this.proxy(function( msg ) { 
-                this.debug( Static._name + 'Model: ' + msg ); 
+                this.debug( Static.modelName + 'Model: ' + msg ); 
             })
           , mongooseConf = {}
           , fields = {};
 
-        if ( this.models[ Static._name ] !== undefined ) {
+        if ( this.models[ Static.modelName ] !== undefined ) {
             parseDebug( 'Returning previously parsed, generated and cached model...' );
-            return this.models[ Static._name ];
+            return this.models[ Static.modelName ];
         }
 
         parseDebug( 'Parsing options...' );
@@ -95,27 +95,27 @@ module.exports      = Module.extend({
             mongooseConf.collection = Static.dbName;
         }
 
-        if ( this.config.modelAssociations[ Static._name ] ) {
-            Object.keys( this.config.modelAssociations[ Static._name ] ).forEach( this.proxy( 'defineModelAssociations', Static, Proto ) );
+        if ( this.config.modelAssociations[ Static.modelName ] ) {
+            Object.keys( this.config.modelAssociations[ Static.modelName ] ).forEach( this.proxy( 'defineModelAssociations', Static, Proto ) );
         }
 
         parseDebug( 'Parsing schema...' );
         Object.keys( Static.fields ).forEach( this.proxy( 'defineField', Static, fields, mongooseConf ) );
 
-        parseDebug( 'Set _db to mongoose...' );
-        Static._db = mongoose;
+        parseDebug( 'Set connection to mongoose...' );
+        Static.connection = mongoose;
 
         parseDebug( 'Generating mongoose schema...' );
         var schema = new mongoose.Schema( fields, mongooseConf );
 
         parseDebug( 'Generating new native model using computed schema...' );
-        var model = mongoose.model( Static._name, schema );
+        var model = mongoose.model( Static.modelName, schema );
 
         parseDebug( 'Registering deepPopulate plugin...' );
         schema.plugin( deepPopulate, {} );
 
         parseDebug( 'Caching completed model...' );
-        this.models[ Static._name ] = model;
+        this.models[ Static.modelName ] = model;
 
         return model;
     },
@@ -142,7 +142,15 @@ module.exports      = Module.extend({
             if ( name !== 'id' ) {
                 throw new Error( [ 'You cannot have a primaryKey that is not called id with the ODM module.' ] );
             }
-            Static.primaryKey = name;
+
+            if (!Static.primaryKey) {
+                Static.primaryKey = name;
+                Static.primaryKeys.push( name );
+                Static.singlePrimaryKey = true;
+            } else {
+                Static.singlePrimaryKey = false;
+            }
+
             mongooseConf.id = true;
             mongooseConf._id = true;
             fieldDefinition = mongoose.Schema.Types.ObjectId;

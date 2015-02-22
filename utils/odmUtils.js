@@ -130,7 +130,7 @@ var odmUtils    = module.exports  = {
     hasMany: function( mongoose, model, proto, assocTo ) {
         var fieldName = inflect.singularize( inflect.camelize( assocTo, true ) )
 
-        model._schema[ fieldName ]     = [
+        model.fields[ fieldName ]     = [
             {
                 type    : mongoose.Schema.ObjectId,
                 of      : assocTo
@@ -163,7 +163,7 @@ var odmUtils    = module.exports  = {
         var fieldName   = inflect.singularize( inflect.camelize( assocTo, true ) )
           , idName      = fieldName + 'Id';
 
-        model._schema[ fieldName ]      = {
+        model.fields[ fieldName ]      = {
             type    : mongoose.Schema.ObjectId,
             of      : assocTo
         };
