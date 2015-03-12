@@ -38,7 +38,7 @@
     "mongoose-bird": "~2.3.11",
     "mongoose-dbref": "~0.0.2",
     "mongoose-lifecycle": "1.0.0",
-    "mongoose-deep-populate": "~0.0.7"
+    "mongoose-deep-populate": "~1.0.1"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
