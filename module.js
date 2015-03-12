@@ -1,28 +1,28 @@
-var mongoose        = require('mongoose')
-  , injector        = require('injector')
-  , inflect         = require('i')()
-  , Module          = require('classes').Module
-  , Model           = require('classes').Model
-  , debug           = require('debug')
-  , odmUtils        = require('utils').odmUtils
-  , lifecycle       = require('mongoose-lifecycle')
-  , dbRef           = require('mongoose-dbref')
-  , deepPopulate    = require('mongoose-deep-populate');
+var mongoose     = require('mongoose')
+  , injector     = require('injector')
+  , inflect      = require('i')()
+  , Module       = require('classes').Module
+  , Model        = require('classes').Model
+  , debug        = require('debug')
+  , odmUtils     = require('utils').odmUtils
+  , lifecycle    = require('mongoose-lifecycle')
+  , dbRef        = require('mongoose-dbref')
+  , deepPopulate = require('mongoose-deep-populate');
 
-module.exports      = Module.extend({
+module.exports   = Module.extend({
 
   models: {},
 
   mongoose: mongoose,
 
   preSetup: function() {
-    var dbConfig    = this.config.mongoose
-      , queryLogger = debug('cleverstack:queryLog');
+    var dbConfig     = this.config.mongoose
+      , queryLogger  = debug('cleverstack:queryLog');
 
     if (!!dbConfig.debug || queryLogger.enabled) {
       if (!queryLogger.enabled) {
         debug.enable('cleverstack:queryLog');
-        queryLogger = debug('cleverstack:queryLog');
+        queryLogger  = debug('cleverstack:queryLog');
       }
       dbConfig.debug = queryLogger;
     }
@@ -93,7 +93,7 @@ module.exports      = Module.extend({
   },
 
   parseModelSchema: function(Klass, Proto) {
-    var parseDebug = this.proxy(function(msg) { 
+    var parseDebug = this.proxy(function(msg) {
           this.debug(Klass.modelName + 'Model: ' + msg);
         })
       , mongooseConf = {}

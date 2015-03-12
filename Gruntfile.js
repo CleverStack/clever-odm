@@ -71,10 +71,10 @@ module.exports = function( grunt ) {
     },
     exec: {
       odmRebase: {
-        cmd: "node modules/clever-odm/bin/rebase.js " + dbTarget
+        cmd: 'node modules/clever-odm/bin/rebase.js ' + dbTarget
       },
       odmSeed: {
-        cmd: "node modules/clever-odm/bin/seedModels.js " + dbTarget
+        cmd: 'node modules/clever-odm/bin/seedModels.js ' + dbTarget
       }
     }
   }, function( grunt ) {

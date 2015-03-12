@@ -56,7 +56,7 @@ moduleLdr.on( 'modulesLoaded', function() {
             );
           },
           callback
-        )
+        );
       },
       function associateModels( callback ) {
         async.forEachSeries(
@@ -86,11 +86,12 @@ moduleLdr.on( 'modulesLoaded', function() {
                     }
 
                     required.forEach( function( requiredModels ) {
-                      if ( typeof requiredModels !== 'array' ) {
+                      if ( !requiredModels instanceof Array ) {
                         requiredModels = [ requiredModels ];
                       }
                       
                       requiredModels.forEach( function( requiredModel ) {
+                        var associatedModel;
                         if ( ( associatedModel = _.findWhere( assocMap[ assocModelName ], requiredModel )) !== undefined ) {
                           associations.push( associatedModel.entity );
                         }
@@ -127,7 +128,7 @@ moduleLdr.on( 'modulesLoaded', function() {
                         .then(function() {
                           called++;
 
-                          if ( called == assocLength ) {
+                          if ( called === assocLength ) {
                             modelCb( null );
                           }
                         })
@@ -144,7 +145,7 @@ moduleLdr.on( 'modulesLoaded', function() {
             );
           },
           callback
-        )
+        );
       }
     ],
     function forEachModelTypeComplete( err ) {
@@ -160,7 +161,7 @@ moduleLdr.on( 'modulesLoaded', function() {
 });
 
 
-helpers.supportSingleDbModule(env, 'clever-odm', process.argv && process.argv[2] != 'null' ? process.argv[2] : false);
+helpers.supportSingleDbModule(env, 'clever-odm', process.argv && process.argv[2] !== 'null' ? process.argv[2] : false);
 
 // Load
 moduleLdr.loadModules();
