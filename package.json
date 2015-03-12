@@ -35,9 +35,9 @@
   "license": "MIT",
   "dependencies": {
     "mongoose": "~3.8.22",
-    "mongoose-bird": "~2.3.11",
+    "mongoose-bird": "~0.0.1",
     "mongoose-dbref": "~0.0.2",
-    "mongoose-lifecycle": "1.0.0",
+    "mongoose-lifecycle": "~1.0.0",
     "mongoose-deep-populate": "~1.0.1"
   },
   "devDependencies": {
