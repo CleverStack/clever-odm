@@ -6,12 +6,12 @@ before_install:
   - npm install rimraf
   - npm install bluebird
 
+env:
+  - NODE_ENV=test; NODE_PATH=./lib/:./modules/
+
 before_script:
   - node tests/beforeTravis.js
   - cd testProject
-
-env:
-  - NODE_ENV=test NODE_PATH=./lib/:./modules/
 
 services:
   - mongodb
