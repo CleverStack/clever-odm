@@ -1,0 +1,38 @@
+before_install:
+  - npm install -g grunt-cli
+  - npm install -g bower
+  - npm install -g cleverstack-cli
+  - npm install ncp
+  - npm install rimraf
+  - npm install bluebird
+
+before_script:
+  - node tests/beforeTravis.js
+  - cd testProject
+
+env:
+  - NODE_ENV=test NODE_PATH=./lib/:./modules/
+
+services:
+  - mongodb
+
+notifications:
+  email:
+    - cleverstack@github.com
+  irc:
+    - "chat.freenode.net#cleverstack"
+
+language: node_js
+
+node_js:
+  - '0.10'
+  - '0.11'
+  - '0.12'
+
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+    - node_modules
