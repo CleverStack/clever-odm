@@ -13,7 +13,7 @@ module.exports  = {
   setup           : odmLib.model.instance.setup,
   eagerLoad       : odmLib.model.associations.loaders.eager.load,
   afterEagerLoad  : odmLib.model.associations.loaders.eager.afterLoad,
-  softDeleteable  : odmLib.model.behaviours.softDeleteable.whereCriteria
+  softDeleteable  : odmLib.model.behaviours.softDeleteable.criteria
 };
 
 // var inflect     = require( 'i' )()

@@ -23,7 +23,9 @@
     "cleverstack-module",
     "cleverstack-backend",
     "odm",
-    "object document mapper",
+    "object",
+    "document",
+    "mapper",
     "dao",
     "mongoose",
     "mongoosejs",
@@ -33,6 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "mongoose": "~3.8.22",
+    "mongoose-bird": "~2.3.11",
     "mongoose-dbref": "~0.0.2",
     "mongoose-lifecycle": "1.0.0",
     "mongoose-deep-populate": "~0.0.7"
