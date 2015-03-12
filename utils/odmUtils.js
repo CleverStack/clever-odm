@@ -12,8 +12,7 @@ module.exports  = {
   wrapModel       : odmLib.model.instance.hydrator,
   setup           : odmLib.model.instance.setup,
   eagerLoad       : odmLib.model.associations.loaders.eager.load,
-  afterEagerLoad  : odmLib.model.associations.loaders.eager.afterLoad,
-  softDeleteable  : odmLib.model.behaviours.softDeleteable.criteria
+  afterEagerLoad  : odmLib.model.associations.loaders.eager.afterLoad
 };
 
 // var inflect     = require( 'i' )()
