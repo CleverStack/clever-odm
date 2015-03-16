@@ -1,10 +1,8 @@
-'use strict';
-
-var fs          = require( 'fs' )
-  , path        = require( 'path' )
-  , pkgJson     = require( path.resolve( path.join( __dirname, '..', '..', 'package.json') ) )
-  , ormEnabled  = pkgJson.bundledDependencies.indexOf( 'clever-orm' ) !== -1
-  , _           = require( 'underscore' );
+var fs         = require( 'fs' )
+  , path       = require( 'path' )
+  , appRoot    = path.resolve(path.join(__dirname, '..', '..'))
+  , utils      = require(path.resolve(path.join(appRoot, 'lib', 'utils')))
+  , _          = require( 'underscore' );
 
 module.exports = function( grunt ) {
   var dbTarget        = grunt.option( 'module' ) || null
@@ -87,7 +85,7 @@ module.exports = function( grunt ) {
     // Register grouped command
     grunt.registerTask( 'db:odm', [ 'db:odmRebase', 'db:odmSeed' ] );
 
-    if ( ormEnabled ) {
+    if (utils.getModulePaths().map(function(module) { return module.split(path.sep);}).indexOf('clever-orm') !== -1) {
       grunt.registerTask( 'db', [ 'db:orm', 'db:odm' ] );
       grunt.registerTask( 'db:rebase', [ 'db:ormRebase', 'db:odmRebase' ] );
       grunt.registerTask( 'db:seed', [ 'db:ormSeed', 'db:odmSeed' ] );
