@@ -1,8 +1,9 @@
 {
-  "name": "clever-odm",
-  "description": "CleverStack ODM (NoSQL) Module",
-  "version": "2.0.0",
-  "main": "module.js",
+  "name"        : "clever-odm",
+  "description" : "CleverStack ODM (NoSQL) Module",
+  "version"     : "2.0.1",
+  "main"        : "module",
+  "license"     : "MIT",
   "author": {
     "name": "CleverStack",
     "email": "admin@cleverstack.io",
@@ -12,11 +13,22 @@
     "Richard Gustin <richard.gustin86@gmail.com>"
   ],
   "repository": {
-    "type": "git",
-    "url": "git://github.com/CleverStack/clever-odm.git"
+    "type"      : "git",
+    "url"       : "https://github.com/CleverStack/clever-odm.git"
   },
   "bugs": {
-    "url": "https://github.com/CleverStack/clever-odm/issues"
+    "url"       : "https://github.com/CleverStack/clever-odm/issues"
+  },
+  "dependencies": {
+    "mongoose"              : "~3.8.22",
+    "mongoose-bird"         : "~0.0.1",
+    "mongoose-dbref"        : "~0.0.2",
+    "mongoose-lifecycle"    : "~1.0.0",
+    "mongoose-deep-populate": "~1.0.1"
+  },
+  "devDependencies": {
+    "grunt"                 : "~0.4.2",
+    "grunt-prompt"          : "~1.1.0"
   },
   "keywords": [
     "cleverstack",
@@ -31,17 +43,5 @@
     "mongoosejs",
     "mongo",
     "mongodb"
-  ],
-  "license": "MIT",
-  "dependencies": {
-    "mongoose": "~3.8.22",
-    "mongoose-bird": "~0.0.1",
-    "mongoose-dbref": "~0.0.2",
-    "mongoose-lifecycle": "~1.0.0",
-    "mongoose-deep-populate": "~1.0.1"
-  },
-  "devDependencies": {
-    "grunt": "~0.4.2",
-    "grunt-prompt": "~1.1.0"
-  }
+  ]
 }
