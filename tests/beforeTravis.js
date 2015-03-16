@@ -94,8 +94,8 @@ function copyOdmModule() {
     copyDir(fromDir, toDir);
 
     var packageJson = require(pkgJson);
-    if (packageJson.bundledDependencies.indexOf('clever-odm') === -1) {
-      packageJson.bundledDependencies.push('clever-odm');
+    if (packageJson.bundledDependencies.indexOf('clever-orm') === -1) {
+      packageJson.bundledDependencies.push('clever-orm');
       fs.writeFile(pkgJson, JSON.stringify(packageJson, null, '  '), function(e) {
         if (!!e) {
           console.log('Error in step #2 - ' + e + '\n');
@@ -136,9 +136,9 @@ function configureOdmModule() {
         { reg: /Mongo URI/         , write: '\n'         , done: false },
         { reg: /Enable debugging/  , write: '\n'         , done: false },
       ]
-      , proc = spawn ('grunt', ['prompt:cleverOdmConfig'], { cwd: path.resolve(path.join(__dirname, '..', prName)) });
+      , proc = spawn ('grunt', ['prompt:cleverOrmConfig'], { cwd: path.resolve(path.join(__dirname, '..', prName)) });
 
-    console.log('step #4 - install clever-odm module - begin\n');
+    console.log('step #4 - install clever-orm module - begin\n');
 
     proc.stdout.on('data', function (data) {
       var str = data.toString();
