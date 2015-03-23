@@ -12,7 +12,10 @@ module.exports  = {
   wrapModel       : odmLib.model.instance.hydrator,
   setup           : odmLib.model.instance.setup,
   eagerLoad       : odmLib.model.associations.loaders.eager.load,
-  afterEagerLoad  : odmLib.model.associations.loaders.eager.afterLoad
+  afterEagerLoad  : odmLib.model.associations.loaders.eager.afterLoad,
+  belongsTo       : odmLib.model.associations.belongsTo,
+  hasMany         : odmLib.model.associations.hasMany,
+  hasOne          : odmLib.model.associations.hasOne,
 };
 
 // var inflect     = require( 'i' )()

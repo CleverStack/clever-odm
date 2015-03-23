@@ -47,13 +47,13 @@ module.exports   = Module.extend({
     mongoose.connect(this.config.uri, this.proxy('handleMongoConnect'));
   },
 
-  defineModelsAssociations: function() {
-    this.debug('Defining model assocations');
+  // defineModelsAssociations: function() {
+  //   this.debug('Defining model assocations');
 
-    Object.keys(this.config.modelAssociations).forEach(this.proxy(function(modelName) {
-      Object.keys(this.config.modelAssociations[ modelName ]).forEach(this.proxy('defineModelAssociations', modelName));
-    }));
-  },
+  //   Object.keys(this.config.modelAssociations).forEach(this.proxy(function(modelName) {
+  //     Object.keys(this.config.modelAssociations[ modelName ]).forEach(this.proxy('defineModelAssociations', modelName));
+  //   }));
+  // },
 
   defineModelAssociations: function(Klass, Proto, assocType) {
     var modelName = Klass.modelName
@@ -109,12 +109,14 @@ module.exports   = Module.extend({
       mongooseConf.collection = Klass.dbName;
     }
 
+    parseDebug('Parsing schema...');
+    Object.keys(Klass.fields).forEach(this.proxy('defineField', Klass, fields, mongooseConf));
+
+    parseDebug('Defining Associations...');
+    Klass.associations = [];
     if (this.config.modelAssociations[ Klass.modelName ]) {
       Object.keys(this.config.modelAssociations[ Klass.modelName ]).forEach(this.proxy('defineModelAssociations', Klass, Proto));
     }
-
-    parseDebug('Parsing schema...');
-    Object.keys(Klass.fields).forEach(this.proxy('defineField', Klass, fields, mongooseConf));
 
     parseDebug('Set connection to mongoose...');
     Klass.connection = mongoose;
